@@ -3,6 +3,7 @@ namespace POGOAPI\Session;
 
 use Exception;
 use Monolog\Logger;
+use POGOAPI\Session\Requests\MapObjectsRequest;
 use POGOAPI\Util\MicroTime;
 use POGOAPI\Player\Profile;
 use POGOAPI\Map\Location;
@@ -56,7 +57,6 @@ abstract class Session {
   public function getProfile() {
     if (!$this->hasProfile()) {
       $this->profile = new Profile($this);
-      $this->profile->update();
     }
     return $this->profile;
   }
@@ -169,6 +169,16 @@ abstract class Session {
     $this->location = $location;
   }
 
+  /**
+   * @return MapObjectsRequest
+   * @throws Exception
+   */
+  public function getMapObjects() {
+    $req = new MapObjectsRequest($this);
+    $req->execute();
+    return $req;
+  }
+
   abstract public function authenticate();
 
   /**
@@ -199,18 +209,5 @@ abstract class Session {
 
     $req = new PlayerRequest($this);
     $this->handler->execute([$req], false, true);
-
-    if ($req->getResponse()->hasPlayerData()) {
-      $this->getProfile()->setData($req->getResponse()->getPlayerData());
-    }
-
-    /*$req = new Request();
-    $req->setRequestType(RequestType::GET_PLAYER);
-    $env = $this->wrap([$req]);
-    $respEnv = $this->req($env, $this->APIURL);
-    if (!$respEnv || empty($respEnv->getApiUrl())) {
-      throw new Exception("Unable to get endpoint URL");
-    }
-    $this->endpoint = "https://".$respEnv->getApiUrl()."/rpc";*/
   }
 }
